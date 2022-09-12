@@ -2,6 +2,7 @@ package main
 
 import (
 	context "context"
+	"errors"
 	"io"
 	"log"
 	"net"
@@ -14,13 +15,15 @@ import (
 )
 
 type ServeCmd struct {
-	Listen string `name:"listen" required:"" help:"listen address"`
-	Dir    string `name:"dir" required:"" help:"Base directory"`
+	Listen     string `name:"listen" required:"" help:"listen address"`
+	Dir        string `name:"dir" required:"" help:"Base directory"`
+	BufferSize uint64 `name:"buffer-size" optional:"" default:"1048576" help:"Buffer size; max gprc chunk size."`
 }
 
 type server struct {
 	pb.UnimplementedByteStreamServer
-	dir string
+	dir        string
+	bufferSize uint64
 }
 
 // QueryWriteStatus implements bytestream.ByteStreamServer
@@ -41,12 +44,17 @@ func (srv *server) Read(req *pb.ReadRequest, res pb.ByteStream_ReadServer) error
 	if _, err := f.Seek(int64(req.ReadOffset), io.SeekStart); err != nil {
 		return err
 	}
-	b, err := io.ReadAll(f)
-	if err != nil {
-		return err
-	}
-	if err := res.Send(&pb.ReadResponse{Data: b}); err != nil {
-		return err
+	b := make([]byte, srv.bufferSize)
+	for {
+		n, err := f.Read(b)
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+		}
+		if err := res.Send(&pb.ReadResponse{Data: b[:n]}); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -63,7 +71,10 @@ func (cmd *ServeCmd) Run(cli *Context) error {
 	}
 	srv := grpc.NewServer()
 	reflection.Register(srv)
-	pb.RegisterByteStreamServer(srv, &server{dir: cmd.Dir})
+	pb.RegisterByteStreamServer(srv, &server{
+		dir:        cmd.Dir,
+		bufferSize: cmd.BufferSize,
+	})
 	log.Printf("Serving gRPC at %q", cmd.Listen)
 	return srv.Serve(listener)
 }
