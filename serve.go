@@ -17,12 +17,14 @@ import (
 type ServeCmd struct {
 	Listen     string `name:"listen" required:"" help:"listen address"`
 	Dir        string `name:"dir" required:"" help:"Base directory"`
+	Write      bool   `name:"write" optional:"" help:"If true, writes are allowed"`
 	BufferSize uint64 `name:"buffer-size" optional:"" default:"1048576" help:"Buffer size; max gprc chunk size."`
 }
 
 type server struct {
 	pb.UnimplementedByteStreamServer
 	dir        string
+	write      bool
 	bufferSize uint64
 }
 
@@ -73,6 +75,7 @@ func (cmd *ServeCmd) Run(cli *Context) error {
 	reflection.Register(srv)
 	pb.RegisterByteStreamServer(srv, &server{
 		dir:        cmd.Dir,
+		write:      cmd.Write,
 		bufferSize: cmd.BufferSize,
 	})
 	log.Printf("Serving gRPC at %q", cmd.Listen)
