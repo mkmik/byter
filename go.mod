@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/alecthomas/kong v0.6.1 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.0.0-20220624220833-87e55d714810 // indirect

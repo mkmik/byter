@@ -9,7 +9,8 @@ type Context struct {
 }
 
 type CLI struct {
-	Get GetCmd `cmd:"" help:"Get"`
+	Get   GetCmd   `cmd:"" help:"Get"`
+	Serve ServeCmd `cmd:"" help:"Serve"`
 }
 
 func main() {
