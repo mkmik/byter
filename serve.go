@@ -64,11 +64,49 @@ func (srv *server) Read(req *pb.ReadRequest, res pb.ByteStream_ReadServer) error
 }
 
 // Write implements bytestream.ByteStreamServer
-func (srv *server) Write(pb.ByteStream_WriteServer) error {
+func (srv *server) Write(stream pb.ByteStream_WriteServer) error {
 	if !srv.write {
 		return status.Errorf(codes.Unimplemented, "write support administratively disabled")
 	}
-	panic("unimplemented")
+
+	var f *os.File
+
+	n := int64(0)
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			if f == nil {
+				return status.Errorf(codes.InvalidArgument, "first WriteRequest must contain ResourceName")
+			}
+			return stream.SendAndClose(&pb.WriteResponse{CommittedSize: n})
+		}
+
+		if f == nil {
+			if chunk.WriteOffset != 0 {
+				return status.Errorf(codes.Unimplemented, "Apending to files is not implemented (write_offset = %d)", chunk.WriteOffset)
+			}
+
+			secpath, err := securejoin.SecureJoin(srv.dir, chunk.ResourceName)
+			if err != nil {
+				return err
+			}
+			f, err = os.Create(secpath)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+		}
+
+		written, err := f.Write(chunk.Data)
+		if err != nil {
+			return err
+		}
+		n += int64(written)
+
+		if chunk.FinishWrite {
+			f.Close()
+		}
+	}
 }
 
 func (cmd *ServeCmd) Run(cli *Context) error {
