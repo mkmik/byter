@@ -37,6 +37,8 @@ func (cmd *GetCmd) Run(cli *Context) error {
 	if err != nil {
 		return err
 	}
+	defer r.Close()
+
 	_, err = io.Copy(os.Stdout, r)
 	if err != nil {
 		return err

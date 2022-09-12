@@ -17,6 +17,7 @@ type Context struct {
 
 type CLI struct {
 	Get   GetCmd   `cmd:"" help:"Get"`
+	Put   PutCmd   `cmd:"" help:"Put"`
 	Serve ServeCmd `cmd:"" help:"Serve"`
 }
 
