@@ -11,7 +11,9 @@ import (
 	securejoin "github.com/cyphar/filepath-securejoin"
 	pb "google.golang.org/genproto/googleapis/bytestream"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 type ServeCmd struct {
@@ -62,7 +64,10 @@ func (srv *server) Read(req *pb.ReadRequest, res pb.ByteStream_ReadServer) error
 }
 
 // Write implements bytestream.ByteStreamServer
-func (*server) Write(pb.ByteStream_WriteServer) error {
+func (srv *server) Write(pb.ByteStream_WriteServer) error {
+	if !srv.write {
+		return status.Errorf(codes.Unimplemented, "write support administratively disabled")
+	}
 	panic("unimplemented")
 }
 
