@@ -6,9 +6,7 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
 
-	securejoin "github.com/cyphar/filepath-securejoin"
 	pb "google.golang.org/genproto/googleapis/bytestream"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,7 +23,7 @@ type ServeCmd struct {
 
 type server struct {
 	pb.UnimplementedByteStreamServer
-	dir        string
+	storage    Storage
 	write      bool
 	bufferSize uint64
 }
@@ -37,15 +35,8 @@ func (*server) QueryWriteStatus(context.Context, *pb.QueryWriteStatusRequest) (*
 
 // Read implements bytestream.ByteStreamServer
 func (srv *server) Read(req *pb.ReadRequest, res pb.ByteStream_ReadServer) error {
-	secpath, err := securejoin.SecureJoin(srv.dir, req.ResourceName)
+	f, err := srv.storage.Read(req.ResourceName, req.ReadOffset)
 	if err != nil {
-		return err
-	}
-	f, err := os.Open(secpath)
-	if err != nil {
-		return err
-	}
-	if _, err := f.Seek(int64(req.ReadOffset), io.SeekStart); err != nil {
 		return err
 	}
 	b := make([]byte, srv.bufferSize)
@@ -69,42 +60,43 @@ func (srv *server) Write(stream pb.ByteStream_WriteServer) error {
 		return status.Errorf(codes.Unimplemented, "write support administratively disabled")
 	}
 
-	var f *os.File
+	var errCh chan error
+	pr, pw := io.Pipe()
 
 	n := int64(0)
 	for {
 		chunk, err := stream.Recv()
 		if err == io.EOF {
-			if f == nil {
+			if errCh == nil {
 				return status.Errorf(codes.InvalidArgument, "first WriteRequest must contain ResourceName")
+			}
+			if err := <-errCh; err != nil {
+				return err
 			}
 			return stream.SendAndClose(&pb.WriteResponse{CommittedSize: n})
 		}
 
-		if f == nil {
+		if errCh == nil {
 			if chunk.WriteOffset != 0 {
 				return status.Errorf(codes.Unimplemented, "Apending to files is not implemented (write_offset = %d)", chunk.WriteOffset)
 			}
 
-			secpath, err := securejoin.SecureJoin(srv.dir, chunk.ResourceName)
-			if err != nil {
-				return err
-			}
-			f, err = os.Create(secpath)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
+			errCh = make(chan error, 1)
+			go func() {
+				err := srv.storage.Write(chunk.ResourceName, pr)
+				pr.CloseWithError(err)
+				errCh <- err
+			}()
 		}
 
-		written, err := f.Write(chunk.Data)
+		written, err := pw.Write(chunk.Data)
 		if err != nil {
 			return err
 		}
 		n += int64(written)
 
 		if chunk.FinishWrite {
-			f.Close()
+			pw.Close()
 		}
 	}
 }
@@ -117,7 +109,7 @@ func (cmd *ServeCmd) Run(cli *Context) error {
 	srv := grpc.NewServer()
 	reflection.Register(srv)
 	pb.RegisterByteStreamServer(srv, &server{
-		dir:        cmd.Dir,
+		storage:    NewDiskStorage(cmd.Dir),
 		write:      cmd.Write,
 		bufferSize: cmd.BufferSize,
 	})
