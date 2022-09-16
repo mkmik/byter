@@ -109,7 +109,7 @@ func (cmd *ServeCmd) Run(cli *Context) error {
 	srv := grpc.NewServer()
 	reflection.Register(srv)
 	pb.RegisterByteStreamServer(srv, &server{
-		storage:    NewDiskStorage(cmd.Dir),
+		storage:    NewDiskStorage(cmd.Dir, shaFileNamer{}),
 		write:      cmd.Write,
 		bufferSize: cmd.BufferSize,
 	})

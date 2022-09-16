@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 type Storage interface {
@@ -13,16 +15,25 @@ type Storage interface {
 	Read(key string, offset int64) (io.ReadCloser, error)
 }
 
-type diskStorage struct {
-	dir string
+type FileNamer interface {
+	PathFor(base, key string) (string, error)
 }
 
-func NewDiskStorage(dir string) *diskStorage {
-	return &diskStorage{dir: dir}
+type diskStorage struct {
+	dir   string
+	namer FileNamer
+}
+
+func NewDiskStorage(dir string, namer FileNamer) *diskStorage {
+	return &diskStorage{dir: dir, namer: namer}
 }
 
 func (d *diskStorage) Write(key string, r io.Reader) error {
-	f, err := os.Create(d.pathForKey(key))
+	path, err := d.namer.PathFor(d.dir, key)
+	if err != nil {
+		return err
+	}
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -32,7 +43,11 @@ func (d *diskStorage) Write(key string, r io.Reader) error {
 }
 
 func (d *diskStorage) Read(key string, offset int64) (io.ReadCloser, error) {
-	f, err := os.Open(d.pathForKey(key))
+	path, err := d.namer.PathFor(d.dir, key)
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +57,15 @@ func (d *diskStorage) Read(key string, offset int64) (io.ReadCloser, error) {
 	return f, nil
 }
 
-func (d *diskStorage) pathForKey(key string) string {
+type shaFileNamer struct{}
+
+func (shaFileNamer) PathFor(base, key string) (string, error) {
 	h := sha256.Sum256([]byte(key))
-	return filepath.Join(d.dir, hex.EncodeToString(h[:]))
+	return filepath.Join(base, hex.EncodeToString(h[:])), nil
+}
+
+type safeFileNamer struct{}
+
+func (safeFileNamer) PathFor(base, key string) (string, error) {
+	return securejoin.SecureJoin(base, key)
 }
