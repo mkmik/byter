@@ -3,6 +3,7 @@ package main
 import (
 	context "context"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -19,6 +20,7 @@ type ServeCmd struct {
 	Dir        string `name:"dir" required:"" help:"Base directory"`
 	Write      bool   `name:"write" optional:"" help:"If true, writes are allowed"`
 	BufferSize uint64 `name:"buffer-size" optional:"" default:"1048576" help:"Buffer size; max gprc chunk size."`
+	Namer      string `name:"namer" optional:"" default:"plain" help:"How resource names are translated into file names"`
 }
 
 type server struct {
@@ -101,6 +103,17 @@ func (srv *server) Write(stream pb.ByteStream_WriteServer) error {
 	}
 }
 
+func namer(name string) (FileNamer, error) {
+	switch name {
+	case "plain":
+		return safeFileNamer{}, nil
+	case "sha":
+		return shaFileNamer{}, nil
+	default:
+		return nil, fmt.Errorf("unknown namer %q", name)
+	}
+}
+
 func (cmd *ServeCmd) Run(cli *Context) error {
 	listener, err := net.Listen("tcp", cmd.Listen)
 	if err != nil {
@@ -108,8 +121,12 @@ func (cmd *ServeCmd) Run(cli *Context) error {
 	}
 	srv := grpc.NewServer()
 	reflection.Register(srv)
+	n, err := namer(cmd.Namer)
+	if err != nil {
+		return err
+	}
 	pb.RegisterByteStreamServer(srv, &server{
-		storage:    NewDiskStorage(cmd.Dir, shaFileNamer{}),
+		storage:    NewDiskStorage(cmd.Dir, n),
 		write:      cmd.Write,
 		bufferSize: cmd.BufferSize,
 	})
