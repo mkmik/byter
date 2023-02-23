@@ -3,7 +3,7 @@ module mkm.pub/byter
 go 1.19
 
 require (
-	github.com/alecthomas/kong v0.6.1
+	github.com/alecthomas/kong v0.7.1
 	github.com/cyphar/filepath-securejoin v0.2.3
 	google.golang.org/api v0.95.0
 	google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f
