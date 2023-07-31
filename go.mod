@@ -6,9 +6,9 @@ require (
 	github.com/alecthomas/kong v0.7.1
 	github.com/cyphar/filepath-securejoin v0.2.3
 	google.golang.org/api v0.110.0
-	google.golang.org/genproto v0.0.0-20230726155614-23370e0ffb3e
+	google.golang.org/genproto v0.0.0-20230731193218-e0aa005b6bdf
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230526015343-6ee61e4f9d5f
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.57.0
 )
 
 require (
@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230706204954-ccb25ca9f130 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230706204954-ccb25ca9f130 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230726155614-23370e0ffb3e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230731190214-cbb8c96f2d6d // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
