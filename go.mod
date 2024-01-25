@@ -8,7 +8,7 @@ require (
 	google.golang.org/api v0.110.0
 	google.golang.org/genproto v0.0.0-20240125205218-1f4bbc51befe
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230526015343-6ee61e4f9d5f
-	google.golang.org/grpc v1.60.1
+	google.golang.org/grpc v1.61.0
 )
 
 require (
