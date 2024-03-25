@@ -7,7 +7,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.4
 	google.golang.org/api v0.110.0
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa
-	google.golang.org/genproto/googleapis/bytestream v0.0.0-20230526015343-6ee61e4f9d5f
+	google.golang.org/genproto/googleapis/bytestream v0.0.0-20240325203815-454cdb8f5daa
 	google.golang.org/grpc v1.62.1
 )
 
