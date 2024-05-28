@@ -6,7 +6,7 @@ require (
 	github.com/alecthomas/kong v0.9.0
 	github.com/cyphar/filepath-securejoin v0.2.5
 	google.golang.org/api v0.110.0
-	google.golang.org/genproto v0.0.0-20240521202816-d264139d666e
+	google.golang.org/genproto v0.0.0-20240528155852-a33235495d66
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20240520151616-dc85e6b867a5
 	google.golang.org/grpc v1.64.0
 )
