@@ -1,6 +1,8 @@
 module mkm.pub/byter
 
-go 1.19
+go 1.21
+
+toolchain go1.22.6
 
 require (
 	github.com/alecthomas/kong v0.9.0
@@ -8,7 +10,7 @@ require (
 	google.golang.org/api v0.110.0
 	google.golang.org/genproto v0.0.0-20240808171019-573a1156607a
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20240520151616-dc85e6b867a5
-	google.golang.org/grpc v1.64.1
+	google.golang.org/grpc v1.65.0
 )
 
 require (
