@@ -1,7 +1,7 @@
 package main
 
 import (
-	context "context"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -68,7 +68,7 @@ func (srv *server) Write(stream pb.ByteStream_WriteServer) error {
 	n := int64(0)
 	for {
 		chunk, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			if errCh == nil {
 				return status.Errorf(codes.InvalidArgument, "first WriteRequest must contain ResourceName")
 			}

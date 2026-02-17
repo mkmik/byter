@@ -19,8 +19,8 @@ type GetCmd struct {
 	Common
 }
 
-func newClient(ctx context.Context, remote string) (*bytestream.Client, error) {
-	conn, err := grpc.DialContext(ctx, remote, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func newClient(remote string) (*bytestream.Client, error) {
+	conn, err := grpc.NewClient(remote, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func newClient(ctx context.Context, remote string) (*bytestream.Client, error) {
 
 func (cmd *GetCmd) Run(cli *Context) error {
 	ctx := context.Background()
-	client, err := newClient(ctx, cmd.Remote)
+	client, err := newClient(cmd.Remote)
 	if err != nil {
 		return err
 	}
