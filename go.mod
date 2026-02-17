@@ -1,6 +1,6 @@
 module mkm.pub/byter
 
-go 1.19
+go 1.26
 
 require (
 	github.com/alecthomas/kong v0.9.0
