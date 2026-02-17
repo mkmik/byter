@@ -13,7 +13,7 @@ type PutCmd struct {
 
 func (cmd *PutCmd) Run(cli *Context) (err error) {
 	ctx := context.Background()
-	client, err := newClient(ctx, cmd.Remote)
+	client, err := newClient(cmd.Remote)
 	if err != nil {
 		return err
 	}
