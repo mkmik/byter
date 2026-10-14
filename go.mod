@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	github.com/alecthomas/kong v0.9.0
-	github.com/cyphar/filepath-securejoin v0.2.5
+	github.com/cyphar/filepath-securejoin v0.7.0
 	google.golang.org/api v0.110.0
 	google.golang.org/genproto v0.0.0-20240812133136-8ffd90a71988
 	google.golang.org/genproto/googleapis/bytestream v0.0.0-20260831171406-18b4a7587f8a
